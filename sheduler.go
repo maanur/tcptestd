@@ -4,20 +4,29 @@ import (
 	"time"
 )
 
-// Sheduler - некий объект, задающий расписание.
-type Sheduler interface {
-	Mkshed() Shedule
+// ShAction представляет собой запланированный на Time запуск тестера Tester
+type Event struct {
+	Time   time.Time
+	Tester *Tester
 }
 
-type simpleshed struct{}
+// Shedule - массив значений времени
+type Shedule struct {
+	Events    []Event
+	Proximity time.Duration
+}
 
-func (simpleshed) Mkshed() (sh Shedule) {
-	sh.Proximity = time.Minute
-	t := time.Now().Round(sh.Proximity).Add(sh.Proximity)
-	sh.Time = append(sh.Time, t)
-	for i := 1; i <= 10; i++ {
-		t = t.Add(sh.Proximity)
-		sh.Time = append(sh.Time, t)
+var Sheduler chan Event
+
+// Run проверяет время с интервалом в sh.Proximity и выполняет запуск
+func (sh *Shedule) Run() {
+	t := time.NewTicker(sh.Proximity)
+	for {
+		now := <-t.C
+		for _, event := range sh.Events {
+			if now.Round(sh.Proximity).Equal(evemt.Time.Round(sh.Proximity)) {
+				Sheduler <- event.Tester.Run()
+			}
+		}
 	}
-	return
 }
