@@ -1,4 +1,4 @@
-package tcptestd
+package sheduler
 
 import "time"
 

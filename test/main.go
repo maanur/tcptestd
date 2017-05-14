@@ -5,13 +5,13 @@ import (
 	"sync"
 	"time"
 
-	"github.com/maanur/tcptestd"
+	"github.com/maanur/tcptestd/sheduler"
 )
 
 func main() {
 	var wg sync.WaitGroup
 	var test tester
-	shed := tcptestd.TestShedule.Mkshed(test)
+	shed := sheduler.TestShedule.Mkshed(test)
 	/*for _, ev := range shed.Events {
 		fmt.Println(ev.Time.String())
 	}*/

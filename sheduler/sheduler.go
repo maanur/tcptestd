@@ -1,4 +1,4 @@
-package tcptestd
+package sheduler
 
 import (
 	"sync"
@@ -9,6 +9,11 @@ import (
 type Event struct {
 	Time   time.Time
 	Tester Tester
+}
+
+// Tester  - интерфейс для задачи, которая вызывается демоном и возвращает свой результат в виде лога и уровня срочности доставки.
+type Tester interface {
+	Run()
 }
 
 // Shedule - массив значений времени
