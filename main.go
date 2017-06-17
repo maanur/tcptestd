@@ -34,8 +34,13 @@ func web() {
 		c.HTML(http.StatusOK, "index.tmpl.html", nil)
 	})
 	router.POST("/", func(c *gin.Context) {
-		v := c.Request.Form.Get("token")
-		log.Println(v)
+		req := c.Request
+		req.Write(os.Stdout)
+		req.ParseForm()
+		userName := req.Form.Get("user_name")
+		command := req.Form.Get("command")
+		text := req.Form.Get("text")
+		log.Println(userName + " calls " + command + " with: " + text)
 	})
 	router.Run(":" + port)
 }
