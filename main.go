@@ -26,6 +26,7 @@ func web() {
 	if port == "" {
 		log.Fatal("$PORT must be set")
 	}
+	log.SetOutput(os.Stdout)
 	router := gin.New()
 	router.Use(gin.Logger())
 	router.LoadHTMLGlob("templates/*.tmpl.html")
