@@ -34,10 +34,7 @@ func web() {
 		c.HTML(http.StatusOK, "index.tmpl.html", nil)
 	})
 	router.POST("/", func(c *gin.Context) {
-		err := c.Request.Write(os.Stdout)
-		if err != nil {
-			log.Println(err)
-		}
+		log.Println(c.Request.Form.Get("user_name"))
 	})
 	router.Run(":" + port)
 }
