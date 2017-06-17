@@ -41,7 +41,10 @@ func web() {
 		userName := req.Form.Get("user_name")
 		command := req.Form.Get("command")
 		text := req.Form.Get("text")
-		log.Println(userName + " calls " + command + " with: " + text)
+		_, err := os.Stdout.Write([]byte(userName + " calls " + command + " with: " + text))
+		if err != nil {
+			log.Fatal(err)
+		}
 	})
 	router.Run(":" + port)
 }
