@@ -33,6 +33,12 @@ func web() {
 	router.GET("/", func(c *gin.Context) {
 		c.HTML(http.StatusOK, "index.tmpl.html", nil)
 	})
+	router.POST("/", func(c *gin.Context) {
+		err := c.Request.Write(os.Stdout)
+		if err != nil {
+			log.Println(err)
+		}
+	})
 	router.Run(":" + port)
 }
 
