@@ -36,7 +36,6 @@ func web() {
 	})
 	router.POST("/", func(c *gin.Context) {
 		req := c.Request
-		req.Write(os.Stdout)
 		req.ParseForm()
 		userName := req.Form.Get("user_name")
 		command := req.Form.Get("command")
