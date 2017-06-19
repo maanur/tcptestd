@@ -1,6 +1,7 @@
 package main
 
 import (
+	"io"
 	"log"
 	"net/http"
 	"os"
@@ -12,13 +13,13 @@ func init() {
 	receivers = append(receivers, web)
 }
 
-func web() {
-	logger := log.New(os.Stdout, "[web] ", log.Lshortfile|log.LstdFlags)
+func web(output io.Writer) {
+	logger := log.New(output, "[web] ", log.Lshortfile|log.LstdFlags)
 	port := os.Getenv("PORT")
 	if port == "" {
 		logger.Fatal("$PORT must be set")
 	}
-	gin.SetMode("debug")
+	gin.SetMode("release")
 	router := gin.New()
 	router.Use(gin.Logger())
 	router.LoadHTMLGlob("templates/*.tmpl.html")

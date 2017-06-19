@@ -1,8 +1,11 @@
 package main
 
 import (
+	"io"
 	"log"
 	"os"
+
+	"strings"
 
 	"github.com/nlopes/slack"
 )
@@ -11,8 +14,8 @@ func init() {
 	receivers = append(receivers, slackbot)
 }
 
-func slackbot() {
-	logger := log.New(os.Stdout, "[slackbot] ", log.Lshortfile|log.LstdFlags)
+func slackbot(output io.Writer) {
+	logger := log.New(output, "[slackbot] ", log.Lshortfile|log.LstdFlags)
 	token := os.Getenv("ESCBOT_SLACK_TOKEN")
 	if token == "" {
 		log.Fatal("$ESCBOT_SLACK_TOKEN must be set")
@@ -32,10 +35,17 @@ func slackbot() {
 			logger.Println("Infos:", ev.Info)
 			logger.Println("Connection counter:", ev.ConnectionCount)
 			// Replace #general with your Channel ID
-			rtm.SendMessage(rtm.NewOutgoingMessage("Hello world", "#general"))
+			rtm.SendMessage(rtm.NewOutgoingMessage("Hello world", "@grushin_m"))
 
 		case *slack.MessageEvent:
 			logger.Printf("Message: %v\n", ev)
+			if strings.Contains(ev.Msg.Text, "testtcpmail") {
+				pmp := slack.PostMessageParameters{}
+				_, _, err := api.PostMessage(ev.Channel, "Let's start testtcpmail", pmp)
+				if err != nil {
+					logger.Println(err)
+				}
+			}
 
 		case *slack.PresenceChangeEvent:
 			logger.Printf("Presence Change: %v\n", ev)
