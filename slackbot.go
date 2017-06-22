@@ -18,7 +18,8 @@ func slackbot(output io.Writer) {
 	logger := log.New(output, "[slackbot] ", log.Lshortfile|log.LstdFlags)
 	token := os.Getenv("ESCBOT_SLACK_TOKEN")
 	if token == "" {
-		log.Fatal("$ESCBOT_SLACK_TOKEN must be set")
+		log.Println("$ESCBOT_SLACK_TOKEN must be set")
+		return
 	}
 	api := slack.New(token)
 	slack.SetLogger(logger)
@@ -35,18 +36,29 @@ func slackbot(output io.Writer) {
 			logger.Println("Infos:", ev.Info)
 			logger.Println("Connection counter:", ev.ConnectionCount)
 			// Replace #general with your Channel ID
-			rtm.SendMessage(rtm.NewOutgoingMessage("Hello world", "@grushin_m"))
+			rtm.SendMessage(rtm.NewOutgoingMessage("Hello world", "#random"))
 
 		case *slack.MessageEvent:
 			logger.Printf("Message: %v\n", ev)
-			if strings.Contains(ev.Msg.Text, "testtcpmail") {
-				pmp := slack.PostMessageParameters{}
-				_, _, err := api.PostMessage(ev.Channel, "Let's start testtcpmail", pmp)
-				if err != nil {
-					logger.Println(err)
+			for actName, action := range actions {
+				if strings.Contains(ev.Msg.Text, actName) {
+					act := action()
+					func(act Action) {
+						actGPS, actGPE := act.GetParam(ev.Msg.Text)
+						if actGPE != nil {
+							rtm.SendMessage(rtm.NewOutgoingMessage(actGPE.Error(), ev.Msg.Channel))
+							return
+						}
+						pmp := slack.PostMessageParameters{}
+						var att slack.Attachment
+						att.Text = "Запустить " + act.Name() + " с параметром " + actGPS
+						_, _, err := api.PostMessage(ev.Msg.Channel, "Start testtcpmail?", pmp)
+						if err != nil {
+							logger.Println(err)
+						}
+					}(act)
 				}
 			}
-
 		case *slack.PresenceChangeEvent:
 			logger.Printf("Presence Change: %v\n", ev)
 
