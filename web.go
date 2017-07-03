@@ -27,9 +27,10 @@ func web(output io.Writer) {
 	router.GET("/", func(c *gin.Context) {
 		c.HTML(http.StatusOK, "index.tmpl.html", nil)
 	})
-	router.POST("/testtcpmail", func(c *gin.Context) {
+	router.POST("/test", func(c *gin.Context) {
 		c.Request.ParseForm()
 		logger.Println(c.Request.Form.Get("user_name") + " calls " + c.Request.Form.Get("command") + " with: " + c.Request.Form.Get("text"))
+		queries <- c.Request.Context()
 	})
 	router.Run(":" + port)
 }

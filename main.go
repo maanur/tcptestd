@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"os"
@@ -8,6 +9,8 @@ import (
 )
 
 var receivers []func(io.Writer)
+
+var queries = make(chan context.Context)
 
 var run = make(chan func())
 
@@ -22,10 +25,4 @@ func main() {
 		}(receiver)
 	}
 	wg.Wait()
-	go func() {
-		for {
-			r := <-run
-			r()
-		}
-	}()
 }

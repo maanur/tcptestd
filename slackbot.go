@@ -11,7 +11,7 @@ import (
 )
 
 func init() {
-	receivers = append(receivers, slackbot)
+	//receivers = append(receivers, slackbot)
 }
 
 func slackbot(output io.Writer) {

@@ -10,11 +10,13 @@ import (
 	"github.com/maanur/testtcpmail/tcpmprobe"
 )
 
+/*
 func init() {
 	actions["tcpmonitor"] = func() Action {
 		return new(tcpmonitor)
 	}
 }
+*/
 
 type tcpmonitor struct {
 	server []struct {
