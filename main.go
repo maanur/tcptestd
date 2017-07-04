@@ -4,14 +4,11 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"os"
 	"sync"
 )
 
 var receivers []func(io.Writer)
-
 var queries = make(chan context.Context)
-
 var run = make(chan func())
 
 func main() {
@@ -21,7 +18,7 @@ func main() {
 		wg.Add(1)
 		go func(f func(io.Writer)) {
 			defer wg.Done()
-			f(os.Stdout)
+			f(logger()) //Вывод
 		}(receiver)
 	}
 	wg.Wait()
