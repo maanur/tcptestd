@@ -2,5 +2,8 @@
   {{template "header.tmpl.html"}}
 <body>
 <h>ESC-BOT</h>
+{{range .logstr}}
+  <div>{{.String}}</div>
+{{end}}
 </body>
 </html>
