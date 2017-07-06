@@ -36,13 +36,7 @@ func (logr *logger) runLogger(ctx context.Context) {
 	defer f.Close()
 	logr.wr = io.MultiWriter(os.Stdout, f)
 	logr.started = true
-	for {
-		select {
-		case <-ctx.Done():
-			break
-		default:
-		}
-	}
+	<-ctx.Done()
 	log.Println("runLogger ended")
 }
 

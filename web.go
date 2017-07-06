@@ -45,11 +45,5 @@ func (w *Web) Run(ctx context.Context, output io.Writer) {
 		queries <- c.Request.Context()
 	})
 	router.Run(":" + port)
-	for {
-		select {
-		case <-ctx.Done():
-			break
-		default:
-		}
-	}
+	<-ctx.Done()
 }

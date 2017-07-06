@@ -26,15 +26,9 @@ var queries = make(chan context.Context)
 var run = make(chan func())
 
 func main() {
-	mainctx, cancel := context.WithTimeout(context.Background(), time.Minute)
+	work, cancel := context.WithTimeout(context.Background(), time.Minute)
 	defer cancel()
-	go logr.runLogger(mainctx)
-	go web.Run(mainctx, logr.writer())
-	for {
-		select {
-		case <-mainctx.Done():
-			break
-		default:
-		}
-	}
+	go logr.runLogger(work)
+	go web.Run(work, logr.writer())
+	<-work.Done()
 }
