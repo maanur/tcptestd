@@ -1,18 +1,53 @@
 package main
 
 import (
-	"fmt"
+	"context"
 	"io"
 	"log"
 	"os"
+	"time"
 )
 
 type logstr struct {
 	String string
 }
 
+type logger struct {
+	wr      io.Writer
+	started bool
+}
+
+var logr logger
+
+var logbuf = []logstr{logstr{String: "one"}, logstr{String: "two"}}
+
+func (logr *logger) writer() io.Writer {
+	if logr.started {
+		return logr.wr
+	}
+	return os.Stdout
+}
+
+func (logr *logger) runLogger(ctx context.Context) {
+	f, err := os.Create(time.Now().Format("0102150405") + ".log")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer f.Close()
+	logr.wr = io.MultiWriter(os.Stdout, f)
+	logr.started = true
+	for {
+		select {
+		case <-ctx.Done():
+			break
+		default:
+		}
+	}
+	log.Println("runLogger ended")
+}
+
+/*
 var logch chan logstr
-var logbuf []logstr
 
 type logger struct {
 	writer io.Writer
@@ -53,5 +88,5 @@ func (l *logger) runBuf() {
 		}
 	}
 }
-
+*/
 //TODO: сохранять логи в файлики по датам и добавлять в архив (tar?)
