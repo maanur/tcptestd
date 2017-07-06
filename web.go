@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"io"
 	"log"
 	"net/http"
@@ -13,8 +14,19 @@ func init() {
 	receivers = append(receivers, web)
 }
 
-func web(output io.Writer) {
-	logger := log.New(output, "[web] ", log.Lshortfile|log.LstdFlags)
+var web Web{name:"web"}
+
+// Web handles incoming queries and provides UI. Implements Integrator for consistency.
+type Web struct{
+	name string
+}
+
+func (w *Web) CallName() string {
+	return name
+}
+
+func (w *Web) Run(ctx *context.Context, output io.Writer) {
+	log := log.New(output, "[web] ", log.Lshortfile|log.LstdFlags)
 	port := os.Getenv("PORT")
 	if port == "" {
 		logger.Fatal("$PORT must be set")
