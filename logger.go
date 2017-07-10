@@ -1,43 +1,70 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"io"
 	"log"
 	"os"
+	"sync"
 	"time"
 )
 
-type logstr struct {
-	String string
-}
-
 type logger struct {
 	wr      io.Writer
-	started bool
+	started chan struct{}
+	buf     bytes.Buffer
 }
 
 var logr logger
 
-var logbuf = []logstr{logstr{String: "one"}, logstr{String: "two"}}
-
 func (logr *logger) writer() io.Writer {
-	if logr.started {
+	select {
+	case <-logr.started:
 		return logr.wr
+	default:
+		return os.Stdout
 	}
-	return os.Stdout
+
 }
 
 func (logr *logger) runLogger(ctx context.Context) {
-	f, err := os.Create(time.Now().Format("0102150405") + ".log")
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer f.Close()
-	logr.wr = io.MultiWriter(os.Stdout, f)
-	logr.started = true
-	<-ctx.Done()
-	log.Println("runLogger ended")
+	logr.started = make(chan struct{})
+	var wg sync.WaitGroup
+	defer func() {
+		select {
+		case <-logr.started:
+		default:
+			close(logr.started)
+		}
+	}()
+	log.Println("logr starting")
+	wg.Add(2)
+	go func(ctx context.Context) {
+		// Вывод в файл (TODO: создавать новый лог каждый день, архивировать логи.)
+		f, err := os.Create(time.Now().Format("0102150405") + ".log")
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer f.Close()
+		writers = append(writers, f)
+		wg.Done()
+		<-ctx.Done()
+	}(ctx)
+	go func(ctx context.Context) {
+		// Вывод в буфер для отображения в вебе
+
+		//logr.wr = io.MultiWriter(logr.wr, lbuf)
+		writers = append(writers, &logr.buf)
+		wg.Done()
+		<-ctx.Done()
+	}(ctx)
+	go func(ctx context.Context) {
+		logr.wr = io.MultiWriter(os.Stdout, writers...)
+		<-ctx.Done()
+	}(ctx)
+	wg.Wait()
+	log.Println("logr started")
 }
 
 /*

@@ -12,9 +12,14 @@ import (
 
 var web = Web{name: "web"}
 
+func init() {
+	backRunList = append(backRunList, &web)
+}
+
 // Web handles incoming queries and provides UI. Implements Integrator for consistency.
 type Web struct {
-	name string
+	name  string
+	logwr *io.Writer
 }
 
 func (w *Web) CallName() string {
@@ -28,6 +33,7 @@ func (w *Web) Run(ctx context.Context, output io.Writer) {
 		log.Fatal("$PORT must be set")
 	}
 	gin.SetMode("release")
+	gin.DefaultWriter = output
 	router := gin.New()
 	router.Use(gin.Logger())
 	router.LoadHTMLGlob("templates/*.tmpl.html")
@@ -35,15 +41,18 @@ func (w *Web) Run(ctx context.Context, output io.Writer) {
 
 	router.GET("/", func(c *gin.Context) {
 		c.HTML(http.StatusOK, "index.tmpl.html", gin.H{
-			"logstr": logbuf,
+			"logstr": logr.buf.String(),
 		})
 	})
 
 	router.POST("/test", func(c *gin.Context) {
 		c.Request.ParseForm()
 		log.Println(c.Request.Form.Get("user_name") + " calls " + c.Request.Form.Get("command") + " with: " + c.Request.Form.Get("text"))
-		queries <- c.Request.Context()
 	})
 	router.Run(":" + port)
 	<-ctx.Done()
+}
+
+func (w *Web) HandlerFunc(ctx *gin.Context) {
+	ctx.Abort()
 }
