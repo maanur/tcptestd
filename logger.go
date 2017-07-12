@@ -31,6 +31,7 @@ func (logr *logger) writer() io.Writer {
 func (logr *logger) runLogger(ctx context.Context) {
 	logr.started = make(chan struct{})
 	var wg sync.WaitGroup
+	var writers []io.Writer
 	defer func() {
 		select {
 		case <-logr.started:
@@ -60,7 +61,7 @@ func (logr *logger) runLogger(ctx context.Context) {
 		<-ctx.Done()
 	}(ctx)
 	go func(ctx context.Context) {
-		logr.wr = io.MultiWriter(os.Stdout, writers...)
+		logr.wr = io.MultiWriter(append(writers, os.Stdout)...)
 		<-ctx.Done()
 	}(ctx)
 	wg.Wait()
