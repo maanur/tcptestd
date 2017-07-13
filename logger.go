@@ -30,8 +30,6 @@ func (logr *logger) writer() io.Writer {
 
 func (logr *logger) runLogger(ctx context.Context) {
 	logr.started = make(chan struct{})
-	var wg sync.WaitGroup
-	var writers []io.Writer
 	defer func() {
 		select {
 		case <-logr.started:
@@ -39,8 +37,9 @@ func (logr *logger) runLogger(ctx context.Context) {
 			close(logr.started)
 		}
 	}()
+	var wg sync.WaitGroup
 	log.Println("logr starting")
-	wg.Add(2)
+	wg.Add(1)
 	go func(ctx context.Context) {
 		// Вывод в файл (TODO: создавать новый лог каждый день, архивировать логи.)
 		f, err := os.Create(time.Now().Format("0102150405") + ".log")
@@ -48,20 +47,11 @@ func (logr *logger) runLogger(ctx context.Context) {
 			log.Fatal(err)
 		}
 		defer f.Close()
-		writers = append(writers, f)
+		//logr.wr = io.MultiWriter(os.Stdout, f, &logr.buf)
+		//logr.buf надо переписать под кастомный тип, реализующий io.Writer
+		logr.wr = io.MultiWriter(os.Stdout, f)
+		close(logr.started)
 		wg.Done()
-		<-ctx.Done()
-	}(ctx)
-	go func(ctx context.Context) {
-		// Вывод в буфер для отображения в вебе
-
-		//logr.wr = io.MultiWriter(logr.wr, lbuf)
-		writers = append(writers, &logr.buf)
-		wg.Done()
-		<-ctx.Done()
-	}(ctx)
-	go func(ctx context.Context) {
-		logr.wr = io.MultiWriter(append(writers, os.Stdout)...)
 		<-ctx.Done()
 	}(ctx)
 	wg.Wait()
